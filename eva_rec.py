@@ -110,7 +110,6 @@ def evaluate(args):
     with tf.variable_scope('sam'):
         samplepts,_=movenet(pointcloud_pl,knum=args.knum,mlp1=[128,256,256],mlp2=[128,128],startcen=None,infer=True) 
 
-    samplepts=project(samplepts,pointcloud_pl,args.batch_size)
     samplepts=resample(samplepts,args.ptnum)
 
     chamferloss=chamfer_big(outpts,out)[0]#+chamfer_big(outpts,fpsout)[0]
