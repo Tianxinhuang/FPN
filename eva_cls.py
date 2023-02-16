@@ -79,7 +79,7 @@ def evaluate(args):
     is_training_pl = tf.placeholder(tf.bool, shape=())
     
     with tf.variable_scope('sam'):
-        samplepts,_=movenet(pointcloud_pl,knum=args.knum,mlp1=[128,256,256],mlp2=[128,128],startcen=None,infer=True)
+        samplepts,_=movenet(pointcloud_pl,knum=args.knum,mlp1=[128,256,256],mlp2=[128,128])
 
     samplepts=resample(samplepts,args.ptnum)
 
@@ -101,6 +101,10 @@ def evaluate(args):
 
         gevar=tf.get_collection(var,scope='ge')
         ge_saver=tf.train.Saver(var_list=gevar)
+
+        istrain=tf.get_collection(var,scope='is_training')
+        sess.run(tf.assign(istrain[0],False))
+
 
         if os.path.exists(os.path.join(args.savepath,'checkpoint')):
             sam_saver.restore(sess, tf.train.latest_checkpoint(args.savepath))

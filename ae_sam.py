@@ -82,11 +82,43 @@ def mlp_architecture_ala_iclr_18(n_pc_points, bneck_size, dnum, bneck_post_mlp=F
         decoder_args['layer_sizes'][0] = bneck_size
 
     return encoder, decoder, encoder_args, decoder_args
- 
+#def movenet(inpts,knum=64,mlp1=[128,128],mlp2=[128,128]):
+#    #with tf.variable_scope(scope):
+#    ptnum=inpts.get_shape()[1].value
+#    _,startcen=sampling(knum,inpts,use_type='r')
+#    words=tf.expand_dims(startcen,axis=2)
+#    inwords=tf.expand_dims(inpts,axis=2)
+#
+#    for i,outchannel in enumerate(mlp1):
+#        inwords=conv2d('movein_state%d'%i,inwords,outchannel,[1,1],padding='VALID',activation_func=None)
+#        inwords=tf.nn.relu(inwords)
+#
+#    inwords=tf.reduce_mean(inwords,axis=1,keepdims=True)
+#    print('>>>>>>>>>>>>>>',words,inwords)
+#    #assert False
+#    words=tf.concat([words,tf.tile(inwords,[1,tf.shape(words)[1],1,1])],axis=-1)
+#    for i,outchannel in enumerate(mlp1):
+#        words=conv2d('mover_state%d'%i,words,outchannel,[1,1],padding='VALID',activation_func=None)
+#        words=tf.nn.relu(words)
+#    wordsfeat=words
+#    #words=tf.reduce_sum(words,axis=1,keepdims=True)/ptnum
+#    words=tf.reduce_mean(words,axis=1,keepdims=True)
+#
+#    words=tf.concat([tf.expand_dims(startcen,axis=2),tf.tile(words,[1,tf.shape(startcen)[1],1,1])],axis=-1)
+#    for i,outchannel in enumerate(mlp2):
+#        words=conv2d('basic_state%d'%i,words,outchannel,[1,1],padding='VALID',activation_func=None)
+#        words=tf.nn.relu(words)
+#    words=conv2d('basic_stateoutg',words,3,[1,1],padding='VALID',activation_func=None)
+#    move=tf.squeeze(words,[2])
+#    result=startcen+move
+#    movelen=tf.sqrt(tf.reduce_sum(tf.square(move),axis=-1))
+#    return result,movelen
 def movenet(inpts,knum=64,mlp1=[128,128],mlp2=[128,128]):
     #with tf.variable_scope(scope):
     ptnum=inpts.get_shape()[1].value
     _,startcen=sampling(knum,inpts,use_type='r')
+    #_,allcen=sampling(ptnum,inpts,use_type='f')
+    #_,startcen=sampling(knum,allcen,use_type='n')
     words=tf.expand_dims(startcen,axis=2)
     inwords=tf.expand_dims(inpts,axis=2)
 
@@ -94,18 +126,17 @@ def movenet(inpts,knum=64,mlp1=[128,128],mlp2=[128,128]):
         inwords=conv2d('movein_state%d'%i,inwords,outchannel,[1,1],padding='VALID',activation_func=None)
         inwords=tf.nn.relu(inwords)
 
-    inwords=tf.reduce_mean(inwords,axis=1,keepdims=True)
-    print('>>>>>>>>>>>>>>',words,inwords)
-    #assert False
-    words=tf.concat([words,tf.tile(inwords,[1,tf.shape(words)[1],1,1])],axis=-1)
+    inwords=tf.reduce_mean(inwords,axis=1,keepdims=True)#/ptnum
+
     for i,outchannel in enumerate(mlp1):
         words=conv2d('mover_state%d'%i,words,outchannel,[1,1],padding='VALID',activation_func=None)
         words=tf.nn.relu(words)
+
     wordsfeat=words
     #words=tf.reduce_sum(words,axis=1,keepdims=True)/ptnum
     words=tf.reduce_mean(words,axis=1,keepdims=True)
 
-    words=tf.concat([tf.expand_dims(startcen,axis=2),tf.tile(words,[1,tf.shape(startcen)[1],1,1])],axis=-1)
+    words=tf.concat([tf.expand_dims(startcen,axis=2),tf.tile(words,[1,tf.shape(startcen)[1],1,1]),tf.tile(inwords,[1,tf.shape(startcen)[1],1,1])],axis=-1)
     for i,outchannel in enumerate(mlp2):
         words=conv2d('basic_state%d'%i,words,outchannel,[1,1],padding='VALID',activation_func=None)
         words=tf.nn.relu(words)
